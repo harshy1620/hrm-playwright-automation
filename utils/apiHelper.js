@@ -15,6 +15,16 @@ class ApiHelper {
     };
   }
 
+  // Returns 404 when the employee has no photo
+  async getProfilePicture(empNumber) {
+    const response = await this.request.get(`${API_BASE}/${empNumber}/picture`);
+    const body = await response.json();
+    return {
+      status: response.status(),
+      picture: response.ok() ? body.data : null,
+    };
+  }
+
   async getJobDetails(empNumber) {
     const response = await this.request.get(`${API_BASE}/${empNumber}/job-details`);
     const body = await response.json();

@@ -4,103 +4,124 @@ End-to-end UI + API test for the Employee Lifecycle scenario on the
 [OrangeHRM demo site](https://opensource-demo.orangehrmlive.com/), written with
 Playwright (JavaScript) using the Page Object Model.
 
+| | |
+|---|---|
+| **Run the test from the browser** | https://hrm-automation-trigger.harshy1620.workers.dev |
+| **Latest report and video** | https://harshy1620.github.io/hrm-playwright-automation/ |
+
+No setup is needed for either link.
+
+## How it works
+
+```
+Trigger page (Cloudflare Worker)  ──starts──▶  GitHub Actions  ──runs──▶  Playwright test
+          ▲                                                                     │
+          └──── shows live progress                  report + video ◀───────────┘
+                                                     (GitHub Pages)
+```
+
+1. **The test** (`tests/`, `pages/`) drives Chrome through the full employee lifecycle.
+2. **GitHub Actions** (`.github/workflows/playwright.yml`) runs the test on a fresh
+   machine on every push to `main`, or when started from the trigger page.
+3. **GitHub Pages** hosts the HTML report of the latest run, with the video.
+4. **The trigger page** (`trigger-page/`) is a small web page with a Run button, live
+   progress, and run history, so anyone can start a run without a GitHub account.
+
 ## Scenario covered
 
-One test runs the full flow, with assertions after every step:
+One test, with assertions after every step:
 
 1. **Login** as Admin and verify the dashboard is visible.
-2. **Add employee** from PIM > Add Employee with first name, last name, employee ID and
-   profile picture (data from `test-data/employee.json`). Verify the success toast and
-   the Personal Details page.
+2. **Add employee** with first name, last name, employee ID and profile picture (data
+   from `test-data/employee.json`). Verify the success toast and Personal Details page.
 3. **Edit employee**: search by Employee ID, update Job Title and Employment Status,
-   reload the page and verify the new values persisted.
-4. **Validate via API**: call OrangeHRM's REST API and cross-check name, employee ID,
-   job title and employment status against the UI.
-5. **Delete employee** from the list, then verify it is gone from both the UI search and
-   the API.
-6. **Logout** and verify the session is invalidated: the dashboard URL redirects to
-   login and the API returns `401`.
+   reload and verify the new values persisted.
+4. **Validate via API**: cross-check name, employee ID, job title and employment status
+   from OrangeHRM's REST API against the UI, and confirm the stored profile picture has
+   the uploaded file's name and size.
+5. **Delete employee**, then verify it is gone from both the UI search and the API.
+6. **Logout** and verify the session is invalidated: the dashboard redirects to login
+   and the API returns `401`.
 
 ## Project structure
 
 ```
-├── pages/                         Page objects (selectors + actions per screen)
-│   ├── LoginPage.js
-│   ├── DashboardPage.js
-│   ├── AddEmployeePage.js
-│   ├── EmployeeListPage.js
-│   └── EmployeeJobDetailsPage.js
-├── tests/
-│   └── employee-lifecycle.spec.js  The end-to-end test
-├── test-data/
-│   ├── employee.json               Test input
-│   └── sample-profile.png          Image used for the profile picture upload
-├── utils/
-│   └── apiHelper.js                OrangeHRM API calls used in steps 4 and 5
-├── playwright-report/              HTML report from the latest run
-├── test-results/                   Video of the latest run
-├── .github/workflows/playwright.yml  Runs the test on GitHub Actions
-└── playwright.config.js            Browser, video, trace and reporter settings
+├── tests/employee-lifecycle.spec.js  The end-to-end test
+├── pages/                            Page objects: selectors + actions per screen
+├── utils/apiHelper.js                OrangeHRM API calls (steps 4 and 5)
+├── test-data/                        Test input and the profile picture
+├── playwright.config.js              Browser, timeouts, video, trace and report settings
+├── .github/workflows/playwright.yml  CI: runs the test and publishes the report
+├── trigger-page/                     The Run-button page (Cloudflare Worker)
+│   ├── worker.js                     Server code: talks to the GitHub API
+│   ├── page.html                     The page people see
+│   └── wrangler.toml                 Cloudflare settings
+├── playwright-report/                HTML report from a local run
+└── test-results/                     Video from a local run
 ```
 
-## Implementation notes
+## Running locally
 
-- **API validation uses OrangeHRM's own API** (`/web/index.php/api/v2/pim/employees`).
-  The calls go through `page.request`, which shares cookies with the browser, so they
-  are authenticated by the same session the UI logged in with.
-- **Unique Employee ID per run.** The demo site is shared by many users, so the test
-  appends a timestamp to the `employeeIdPrefix` from the JSON file to avoid collisions.
-- **Each step is a `test.step()`**, so the HTML report shows the six steps separately.
-- **Every assertion has a message** describing what was expected.
-
-## Setup
-
-Requires [Node.js](https://nodejs.org/) 18 or later and Google Chrome.
+Requires [Node.js](https://nodejs.org/) 18+ and Google Chrome.
 
 ```bash
-git clone <repo-url>
-cd orangehrm-playwright-automation
+git clone https://github.com/harshy1620/hrm-playwright-automation.git
+cd hrm-playwright-automation
 npm install
-```
 
-The test runs on the locally installed Google Chrome, so no browser download is needed.
-If Chrome is not installed, run `npx playwright install chrome`.
-
-## Running the test
-
-```bash
 npm test              # headless
 npm run test:headed   # with a visible browser
-npm run test:ui       # Playwright UI mode
+npm run test:ui       # step through each action
 npm run report        # open the HTML report of the last run
 ```
 
-## Report and video
+The test uses the installed Google Chrome, so no browser download is needed.
 
-- **Live report of the latest CI run (with video):**
-  https://harshy1620.github.io/hrm-playwright-automation/
-- HTML report: `playwright-report/index.html` (or `npm run report`). The video and
-  step timeline are attached to the test inside the report.
-- Raw video file: `test-results/<test-name>/video.webm`.
-- On GitHub Actions, both folders are uploaded as artifacts on every run.
+To view a report without running anything, open `playwright-report/index.html` in a
+browser. The video is inside the report.
+
+## Implementation notes
+
+- **API validation uses OrangeHRM's own API** (`/web/index.php/api/v2/pim/employees`)
+  through `page.request`, which reuses the browser's login cookies.
+- **Unique Employee ID per run.** The demo site is shared, so a timestamp is appended to
+  the `employeeIdPrefix` from the JSON file.
+- **Exact dropdown matching.** Other users add look-alike values such as
+  "QA Engineer-123", so options are matched by exact text.
+- **Fail fast.** Page loads time out after 30 s, so an unreachable demo site fails
+  quickly instead of using the full 2-minute test timeout. On CI a failed test is retried
+  twice.
+- **Readable reports.** Each scenario step is a `test.step()`, and every assertion has a
+  message describing what was expected.
 
 ## Trigger page
 
-`trigger-page/` is a Cloudflare Worker that lets anyone start the test from a web page,
-follow its progress, and open the report, without a GitHub account. The GitHub token is
-stored as a Worker secret and never reaches the browser.
+Starting a GitHub Actions run needs a GitHub token, which cannot be put in a public web
+page. The trigger page is therefore a **Cloudflare Worker**: a small piece of server code
+that Cloudflare runs on demand, for free. It keeps the token as a secret, starts the
+workflow, and reports progress to the page. The browser never sees the token.
 
-Deploy it once:
+**Wrangler** is Cloudflare's command-line tool that uploads the worker, and
+**wrangler.toml** is its settings file (worker name, entry file).
+
+To deploy your own copy:
+
+1. Create a GitHub fine-grained token for this repository only, with
+   **Actions: Read and write**.
+2. From the `trigger-page` folder:
 
 ```bash
-cd trigger-page
-npx wrangler login
-npx wrangler secret put GITHUB_TOKEN   # fine-grained token, this repo only, Actions: Read and write
-npx wrangler deploy
+npx wrangler login                     # sign in to Cloudflare
+npx wrangler secret put GITHUB_TOKEN   # paste the token when asked
+npx wrangler deploy                    # publish; prints the page URL
 ```
+
+Run `npx wrangler deploy` again after changing `worker.js` or `page.html`.
 
 ## Dependencies
 
-| Package | Purpose |
+| Tool | Purpose |
 |---|---|
 | `@playwright/test` | Test runner, browser automation, assertions, API requests, HTML report, video and trace |
+| GitHub Actions and Pages | Run the test in the cloud and host the report |
+| Cloudflare Workers (`wrangler`) | Host the trigger page |

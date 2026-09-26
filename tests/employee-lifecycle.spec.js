@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { test, expect } = require('@playwright/test');
 
 const { LoginPage } = require('../pages/LoginPage');
@@ -110,6 +112,12 @@ test.describe('Employee Lifecycle Management - OrangeHRM', () => {
       expect(job.status, 'Job details API should respond with 200').toBe(200);
       expect(job.jobTitle, 'API Job Title should match the value shown in the UI').toBe(uiJobTitle);
       expect(job.employmentStatus, 'API Employment Status should match the value shown in the UI').toBe(uiEmploymentStatus);
+
+      const photo = await apiHelper.getProfilePicture(empNumber);
+      const uploadedFile = employee.profilePicture;
+      expect(photo.status, 'Profile picture API should find the photo uploaded in Step 2').toBe(200);
+      expect(photo.picture.filename, 'Stored photo should be the file that was uploaded').toBe(path.basename(uploadedFile));
+      expect(Number(photo.picture.size), 'Stored photo size should match the uploaded file').toBe(fs.statSync(uploadedFile).size);
     });
 
     await test.step('Step 5: Delete the employee from UI and verify via UI and API', async () => {
