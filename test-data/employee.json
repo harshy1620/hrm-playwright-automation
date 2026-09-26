@@ -1,0 +1,12 @@
+{
+  "newEmployee": {
+    "firstName": "Rahul",
+    "lastName": "Sharma",
+    "employeeIdPrefix": "QA",
+    "profilePicture": "test-data/sample-profile.png"
+  },
+  "updatedJobDetails": {
+    "jobTitle": "QA Engineer",
+    "employmentStatus": "Full-Time Permanent"
+  }
+}
