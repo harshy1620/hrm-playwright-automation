@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrangeHRM Test Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+  :root {
+    --bg: #f6f6f4;
+    --surface: #ffffff;
+    --border: #e7e5e0;
+    --text: #1d232b;
+    --muted: #5f6873;
+    --hero: #1f2d3d;
+    --hero-text: #ffffff;
+    --hero-muted: #c3cbd5;
+    --accent: #f28c28;
+    --accent-ink: #b85f12;
+    --pass: #1f7a45;
+    --pass-bg: #e3f3ea;
+    --fail: #b83434;
+    --fail-bg: #fae8e8;
+    --pending: #cfd3d8;
+    --shadow: 0 1px 2px rgba(20, 30, 40, 0.04), 0 4px 16px rgba(20, 30, 40, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11151a;
+      --surface: #1a2027;
+      --border: #2b333d;
+      --text: #e7eaed;
+      --muted: #9aa4ae;
+      --hero: #0b1118;
+      --hero-muted: #9fabb8;
+      --accent-ink: #f5a55a;
+      --pass: #5ccf8d;
+      --pass-bg: #173325;
+      --fail: #f07f7f;
+      --fail-bg: #3a1d1f;
+      --pending: #45505c;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #11151a;
+    --surface: #1a2027;
+    --border: #2b333d;
+    --text: #e7eaed;
+    --muted: #9aa4ae;
+    --hero: #0b1118;
+    --hero-muted: #9fabb8;
+    --accent-ink: #f5a55a;
+    --pass: #5ccf8d;
+    --pass-bg: #173325;
+    --fail: #f07f7f;
+    --fail-bg: #3a1d1f;
+    --pending: #45505c;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+
+  header {
+    background: var(--hero);
+    color: var(--hero-text);
+    padding: 48px 0 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: "";
+    position: absolute;
+    right: -70px;
+    top: -70px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .brand::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    transform: rotate(45deg);
+    border-radius: 2px;
+  }
+  h1 { margin: 14px 0 6px; font-size: clamp(26px, 5vw, 34px); font-weight: 800; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--hero-muted); }
+
+  main.wrap { padding: 28px 16px 56px; display: grid; gap: 18px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card.plain { border-top: 1px solid var(--border); }
+  .card h2 { margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+  .card p { margin: 0 0 16px; color: var(--muted); }
+  .steps-preview { margin: 0 0 18px; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .steps-preview li { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+
+  .link-btn {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0 0 2px;
+    font: inherit;
+    font-weight: 700;
+    color: var(--text);
+    border-bottom: 2px solid var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .link-btn:hover { color: var(--accent-ink); }
+  .link-btn:disabled { opacity: 0.5; cursor: default; }
+  .primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #1d1206;
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .primary:hover { filter: brightness(1.05); }
+
+  .status-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .status-head h2 { font-size: 18px; }
+  .spinner {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2.5px solid var(--pending);
+    border-top-color: var(--accent);
+    animation: spin 0.9s linear infinite;
+    flex: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex: none;
+  }
+  .badge.pass { background: var(--pass-bg); color: var(--pass); }
+  .badge.fail { background: var(--fail-bg); color: var(--fail); }
+
+  ol.steps { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
+  ol.steps li { display: flex; align-items: center; gap: 12px; color: var(--muted); }
+  ol.steps li::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--pending);
+    flex: none;
+    margin: 0 4px;
+  }
+  ol.steps li.active { color: var(--text); font-weight: 600; }
+  ol.steps li.active::before { background: var(--accent); box-shadow: 0 0 0 4px rgba(242, 140, 40, 0.2); }
+  ol.steps li.done { color: var(--text); }
+  ol.steps li.done::before { background: var(--pass); }
+  ol.steps li.failed { color: var(--fail); font-weight: 600; }
+  ol.steps li.failed::before { background: var(--fail); }
+  .note { font-size: 13px; color: var(--muted); margin: 0; }
+  .actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+  .error { color: var(--fail); font-size: 14px; margin: 12px 0 0; }
+
+  .latest-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .pill { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .pill.pass { background: var(--pass-bg); color: var(--pass); }
+  .pill.fail { background: var(--fail-bg); color: var(--fail); }
+  .pill.run { background: var(--bg); color: var(--accent-ink); border: 1px solid var(--border); }
+  .hidden { display: none !important; }
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 32px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">OrangeHRM QA</div>
+    <h1>Test Automation</h1>
+    <p>Run the end-to-end check on the OrangeHRM demo. Takes about two minutes.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card" id="start-card">
+    <h2>Employee lifecycle check <span class="tag">Demo site</span></h2>
+    <div class="mono">opensource-demo.orangehrmlive.com</div>
+    <p>Logs in, adds an employee with a profile photo, updates the job details, cross-checks the data through the API, deletes the employee and logs out. Records a video of the whole run.</p>
+    <ul class="steps-preview">
+      <li>Login</li><li>Add</li><li>Edit</li><li>API check</li><li>Delete</li><li>Logout</li>
+    </ul>
+    <button class="link-btn" id="start-btn" type="button">Start the check &rarr;</button>
+    <p class="error hidden" id="start-error"></p>
+  </section>
+
+  <section class="card hidden" id="run-card">
+    <div class="status-head">
+      <div class="spinner" id="run-icon"></div>
+      <h2 id="run-title">Starting the run&hellip;</h2>
+    </div>
+    <ol class="steps">
+      <li id="step-queued">Run queued on GitHub</li>
+      <li id="step-test">Running the employee lifecycle test</li>
+      <li id="step-report">Report and video published</li>
+    </ol>
+    <p class="note" id="run-note">Roughly two minutes. You can leave this tab open, or come back to the report link later.</p>
+    <div class="actions hidden" id="run-actions">
+      <a class="primary" id="report-link" href="#" target="_blank" rel="noopener">Open report &amp; video &rarr;</a>
+      <a class="link-btn" id="github-link" href="#" target="_blank" rel="noopener">View run on GitHub</a>
+      <button class="link-btn" id="again-btn" type="button">Run again</button>
+    </div>
+    <p class="error hidden" id="run-error"></p>
+  </section>
+
+  <section class="card plain" id="latest-card">
+    <h2>Latest report</h2>
+    <p style="margin-top:6px">Open the most recent result without starting a new run.</p>
+    <div class="latest-row" id="latest-row"><span class="note">Loading&hellip;</span></div>
+    <a class="link-btn" id="latest-link" href="https://harshy1620.github.io/hrm-playwright-automation/" target="_blank" rel="noopener">View report &rarr;</a>
+  </section>
+</main>
+
+<footer>
+  Runs on GitHub Actions &middot; <a href="https://github.com/harshy1620/hrm-playwright-automation" target="_blank" rel="noopener">Source</a>
+</footer>
+
+<script>
+  var POLL_MS = 5000;
+  var $ = function (id) { return document.getElementById(id); };
+  var pollTimer = null;
+
+  function api(path, options) {
+    return fetch(path, options).then(function (res) {
+      return res.json().then(function (body) {
+        if (!res.ok || body.error) throw new Error(body.error || ('Request failed: ' + res.status));
+        return body;
+      });
+    });
+  }
+
+  function timeAgo(iso) {
+    var seconds = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
+    if (seconds < 60) return 'just now';
+    var minutes = Math.round(seconds / 60);
+    if (minutes < 60) return minutes + ' min ago';
+    var hours = Math.round(minutes / 60);
+    if (hours < 24) return hours + ' hr ago';
+    return Math.round(hours / 24) + ' days ago';
+  }
+
+  function setStep(id, state) {
+    $(id).className = state || '';
+  }
+
+  function renderRun(run) {
+    var testStarted = run.test.status === 'in_progress' || run.test.status === 'completed';
+    var testDone = run.test.status === 'completed';
+    var testPassed = run.test.conclusion === 'success';
+    var deploy = run.deploy;
+    var finished = run.status === 'completed';
+
+    setStep('step-queued', testStarted ? 'done' : 'active');
+    setStep('step-test', !testStarted ? '' : !testDone ? 'active' : testPassed ? 'done' : 'failed');
+    if (!deploy) setStep('step-report', finished ? 'failed' : '');
+    else if (deploy.status !== 'completed') setStep('step-report', 'active');
+    else setStep('step-report', deploy.conclusion === 'success' ? 'done' : 'failed');
+
+    $('github-link').href = run.runUrl;
+
+    if (!finished) {
+      $('run-icon').className = 'spinner';
+      $('run-icon').textContent = '';
+      $('run-title').textContent = !testStarted ? 'Waiting for GitHub to start the run…'
+        : !testDone ? 'Test is running…' : 'Publishing the report…';
+      return false;
+    }
+
+    var reportReady = deploy && deploy.conclusion === 'success';
+    $('run-icon').className = 'badge ' + (testPassed ? 'pass' : 'fail');
+    $('run-icon').textContent = testPassed ? '✓' : '✕';
+    $('run-title').textContent = testPassed ? 'All checks passed' : 'The check failed';
+    $('run-note').textContent = testPassed
+      ? 'Every step passed. The report has the step timeline and the video.'
+      : 'Open the report to see which step failed, with a screenshot and the video.';
+    $('report-link').href = run.reportUrl;
+    $('report-link').classList.toggle('hidden', !reportReady);
+    $('run-actions').classList.remove('hidden');
+    loadLatest();
+    return true;
+  }
+
+  function trackRun(runId) {
+    $('start-card').classList.add('hidden');
+    $('run-card').classList.remove('hidden');
+    $('run-error').classList.add('hidden');
+    history.replaceState(null, '', '?run=' + runId);
+
+    function tick() {
+      api('/api/run/' + runId).then(function (run) {
+        if (!renderRun(run)) pollTimer = setTimeout(tick, POLL_MS);
+      }).catch(function (err) {
+        $('run-error').textContent = err.message + ' Retrying…';
+        $('run-error').classList.remove('hidden');
+        pollTimer = setTimeout(tick, POLL_MS * 2);
+      });
+    }
+    tick();
+  }
+
+  function startRun() {
+    var btn = $('start-btn');
+    btn.disabled = true;
+    btn.textContent = 'Starting…';
+    $('start-error').classList.add('hidden');
+    api('/api/run', { method: 'POST' }).then(function (res) {
+      trackRun(res.runId);
+    }).catch(function (err) {
+      $('start-error').textContent = err.message;
+      $('start-error').classList.remove('hidden');
+    }).finally(function () {
+      btn.disabled = false;
+      btn.innerHTML = 'Start the check &rarr;';
+    });
+  }
+
+  function resetToStart() {
+    clearTimeout(pollTimer);
+    history.replaceState(null, '', location.pathname);
+    ['step-queued', 'step-test', 'step-report'].forEach(function (id) { setStep(id, ''); });
+    $('run-actions').classList.add('hidden');
+    $('run-title').textContent = 'Starting the run…';
+    $('run-icon').className = 'spinner';
+    $('run-icon').textContent = '';
+    $('run-note').textContent = 'Roughly two minutes. You can leave this tab open, or come back to the report link later.';
+    $('run-card').classList.add('hidden');
+    $('start-card').classList.remove('hidden');
+  }
+
+  function loadLatest() {
+    api('/api/latest').then(function (run) {
+      var row = $('latest-row');
+      if (run.none) { row.innerHTML = '<span class="note">No runs yet.</span>'; return; }
+      var pill = document.createElement('span');
+      if (run.status !== 'completed') { pill.className = 'pill run'; pill.textContent = 'Running'; }
+      else if (run.test.conclusion === 'success') { pill.className = 'pill pass'; pill.textContent = 'Passed'; }
+      else { pill.className = 'pill fail'; pill.textContent = 'Failed'; }
+      var info = document.createElement('span');
+      info.className = 'note';
+      var source = run.event === 'workflow_dispatch' ? 'started manually' : run.event === 'push' ? 'after a code push' : run.event;
+      info.textContent = timeAgo(run.startedAt || run.updatedAt) + ' · ' + source;
+      row.replaceChildren(pill, info);
+      $('latest-link').href = run.reportUrl;
+    }).catch(function () {
+      $('latest-row').innerHTML = '<span class="note">Could not load the latest run.</span>';
+    });
+  }
+
+  $('start-btn').addEventListener('click', startRun);
+  $('again-btn').addEventListener('click', resetToStart);
+
+  var runFromUrl = new URLSearchParams(location.search).get('run');
+  if (runFromUrl && /^\d+$/.test(runFromUrl)) trackRun(runFromUrl);
+  loadLatest();
+</script>
+</body>
+</html>

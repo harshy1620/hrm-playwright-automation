@@ -84,6 +84,21 @@ npm run report        # open the HTML report of the last run
 - Raw video file: `test-results/<test-name>/video.webm`.
 - On GitHub Actions, both folders are uploaded as artifacts on every run.
 
+## Trigger page
+
+`trigger-page/` is a Cloudflare Worker that lets anyone start the test from a web page,
+follow its progress, and open the report, without a GitHub account. The GitHub token is
+stored as a Worker secret and never reaches the browser.
+
+Deploy it once:
+
+```bash
+cd trigger-page
+npx wrangler login
+npx wrangler secret put GITHUB_TOKEN   # fine-grained token, this repo only, Actions: Read and write
+npx wrangler deploy
+```
+
 ## Dependencies
 
 | Package | Purpose |
