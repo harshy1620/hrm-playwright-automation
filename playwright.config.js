@@ -15,6 +15,8 @@ module.exports = defineConfig({
   use: {
     baseURL: 'https://opensource-demo.orangehrmlive.com',
     actionTimeout: 15 * 1000,
+    // Fail fast when the shared demo site does not respond, instead of using the whole test timeout
+    navigationTimeout: 30 * 1000,
 
     video: 'on',
     screenshot: 'only-on-failure',

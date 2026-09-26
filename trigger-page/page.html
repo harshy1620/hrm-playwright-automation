@@ -439,7 +439,9 @@
     body.replaceChildren();
     el('history-empty').classList.toggle('hidden', state.runs.length > 0);
     el('history-table').classList.toggle('hidden', state.runs.length === 0);
-    var latestFinished = state.runs.find(function (r) { return r.status === 'completed'; });
+    // GitHub Pages holds the report of whichever run finished last, not the one started last
+    var latestFinished = state.runs.filter(function (r) { return r.finishedAt; })
+      .sort(function (a, b) { return Date.parse(b.finishedAt) - Date.parse(a.finishedAt); })[0];
 
     state.runs.forEach(function (run) {
       var result = resultOf(run);

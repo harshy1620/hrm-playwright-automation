@@ -111,7 +111,8 @@ function stageState(steps) {
   if (!steps.length) return 'pending';
   if (steps.some((s) => s.conclusion === 'failure')) return 'failed';
   if (steps.every((s) => s.status === 'completed')) return 'done';
-  if (steps.some((s) => s.status !== 'queued')) return 'active';
+  // Steps that have not started report "queued" or "pending", so only count real progress
+  if (steps.some((s) => s.status === 'in_progress' || s.status === 'completed')) return 'active';
   return 'pending';
 }
 
