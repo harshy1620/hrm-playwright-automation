@@ -26,6 +26,7 @@ Trigger page (Cloudflare Worker)  ──starts──▶  GitHub Actions  ──r
 3. **GitHub Pages** hosts the HTML report of the latest run, with the video.
 4. **The trigger page** (`trigger-page/`) is a small web page with a Run button, live
    progress, and run history, so anyone can start a run without a GitHub account.
+5. **Google Chat** gets a pass/fail message with report and log links when a run ends.
 
 ## Scenario covered
 
@@ -52,6 +53,7 @@ One test, with assertions after every step:
 ├── test-data/                        Test input and the profile picture
 ├── playwright.config.js              Browser, timeouts, video, trace and report settings
 ├── .github/workflows/playwright.yml  CI: runs the test and publishes the report
+├── .github/scripts/notify-gchat.js   Sends the run result to Google Chat
 ├── trigger-page/                     The Run-button page (Cloudflare Worker)
 │   ├── worker.js                     Server code: talks to the GitHub API
 │   ├── page.html                     The page people see
@@ -120,11 +122,8 @@ Run `npx wrangler deploy` again after changing `worker.js` or `page.html`.
 
 ## Google Chat alerts
 
-When a run on `main` finishes, the `notify` job posts the result to a Google Chat space,
-with buttons for the report and the logs. To turn it on, create an incoming webhook in
-the space (space name > **Apps & integrations** > **Webhooks**) and save its URL as a
-repository secret named `GCHAT_WEBHOOK_URL` (**Settings** > **Secrets and variables** >
-**Actions**). Without the secret, the job skips the message.
+Save a Google Chat incoming webhook URL as the repository secret `GCHAT_WEBHOOK_URL`.
+Without it, the alert is skipped and the run is unaffected.
 
 ## Dependencies
 
@@ -133,3 +132,4 @@ repository secret named `GCHAT_WEBHOOK_URL` (**Settings** > **Secrets and variab
 | `@playwright/test` | Test runner, browser automation, assertions, API requests, HTML report, video and trace |
 | GitHub Actions and Pages | Run the test in the cloud and host the report |
 | Cloudflare Workers (`wrangler`) | Host the trigger page |
+| Google Chat webhook | Run result alerts |
