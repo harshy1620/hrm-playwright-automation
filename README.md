@@ -77,6 +77,8 @@ npm run report        # open the HTML report of the last run
 
 ## Report and video
 
+- **Live report of the latest CI run (with video):**
+  https://harshy1620.github.io/hrm-playwright-automation/
 - HTML report: `playwright-report/index.html` (or `npm run report`). The video and
   step timeline are attached to the test inside the report.
 - Raw video file: `test-results/<test-name>/video.webm`.
