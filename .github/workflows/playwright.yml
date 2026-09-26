@@ -71,3 +71,24 @@ jobs:
       - name: Deploy report to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  notify:
+    needs: [test, deploy-report]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Send result to Google Chat
+        env:
+          GCHAT_WEBHOOK_URL: ${{ secrets.GCHAT_WEBHOOK_URL }}
+          TEST_RESULT: ${{ needs.test.result }}
+          REPORT_PUBLISHED: ${{ needs.deploy-report.result }}
+          TRIGGER: ${{ github.event_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPORT_URL: https://harshy1620.github.io/hrm-playwright-automation/?run=${{ github.run_id }}
+        run: node .github/scripts/notify-gchat.js

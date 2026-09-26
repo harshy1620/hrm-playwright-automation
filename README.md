@@ -118,6 +118,14 @@ npx wrangler deploy                    # publish; prints the page URL
 
 Run `npx wrangler deploy` again after changing `worker.js` or `page.html`.
 
+## Google Chat alerts
+
+When a run on `main` finishes, the `notify` job posts the result to a Google Chat space,
+with buttons for the report and the logs. To turn it on, create an incoming webhook in
+the space (space name > **Apps & integrations** > **Webhooks**) and save its URL as a
+repository secret named `GCHAT_WEBHOOK_URL` (**Settings** > **Secrets and variables** >
+**Actions**). Without the secret, the job skips the message.
+
 ## Dependencies
 
 | Tool | Purpose |
