@@ -3,414 +3,647 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OrangeHRM Test Automation</title>
+<title>OrangeHRM test runner</title>
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='17' r='12' fill='none' stroke='%23FF8A2A' stroke-width='4'/%3E%3Cpath d='M16 17V10' stroke='%23FF8A2A' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
 <style>
   :root {
-    --bg: #f6f6f4;
-    --surface: #ffffff;
-    --border: #e7e5e0;
-    --text: #1d232b;
-    --muted: #5f6873;
-    --hero: #1f2d3d;
-    --hero-text: #ffffff;
-    --hero-muted: #c3cbd5;
-    --accent: #f28c28;
-    --accent-ink: #b85f12;
-    --pass: #1f7a45;
-    --pass-bg: #e3f3ea;
-    --fail: #b83434;
-    --fail-bg: #fae8e8;
-    --pending: #cfd3d8;
-    --shadow: 0 1px 2px rgba(20, 30, 40, 0.04), 0 4px 16px rgba(20, 30, 40, 0.05);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #11151a;
-      --surface: #1a2027;
-      --border: #2b333d;
-      --text: #e7eaed;
-      --muted: #9aa4ae;
-      --hero: #0b1118;
-      --hero-muted: #9fabb8;
-      --accent-ink: #f5a55a;
-      --pass: #5ccf8d;
-      --pass-bg: #173325;
-      --fail: #f07f7f;
-      --fail-bg: #3a1d1f;
-      --pending: #45505c;
-      --shadow: none;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #11151a;
-    --surface: #1a2027;
-    --border: #2b333d;
-    --text: #e7eaed;
-    --muted: #9aa4ae;
-    --hero: #0b1118;
-    --hero-muted: #9fabb8;
-    --accent-ink: #f5a55a;
-    --pass: #5ccf8d;
-    --pass-bg: #173325;
-    --fail: #f07f7f;
-    --fail-bg: #3a1d1f;
-    --pending: #45505c;
-    --shadow: none;
+    --ground: #13232b;
+    --panel: #1a2f39;
+    --raised: #213a46;
+    --line: #2e4854;
+    --text: #e8f0f2;
+    --muted: #93aab4;
+    --orange: #ff8a2a;
+    --orange-soft: rgba(255, 138, 42, 0.16);
+    --on-orange: #231203;
+    --pass: #5fd39a;
+    --pass-soft: rgba(95, 211, 154, 0.14);
+    --fail: #ff7a70;
+    --fail-soft: rgba(255, 122, 112, 0.14);
+    --pending: #3a5562;
+    --clock: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    --ui: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
 
   * { box-sizing: border-box; }
+  html { background: var(--ground); }
   body {
     margin: 0;
-    background: var(--bg);
+    background: var(--ground);
     color: var(--text);
-    font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: var(--ui);
     font-size: 15px;
     line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+  a { color: inherit; }
+  button { font: inherit; }
+  :focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 6px; }
+  .shell { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
 
-  header {
-    background: var(--hero);
-    color: var(--hero-text);
-    padding: 48px 0 56px;
-    position: relative;
-    overflow: hidden;
-  }
-  header::after {
-    content: "";
-    position: absolute;
-    right: -70px;
-    top: -70px;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-  }
-  .brand {
-    display: flex;
+  /* Top bar */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 0; }
+  .mark { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+  .mark svg { width: 26px; height: 26px; flex: none; }
+  .topbar a { color: var(--muted); font-size: 14px; text-decoration: none; }
+  .topbar a:hover { color: var(--text); }
+
+  /* Clock panel: the one loud element on the page */
+  .console {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: clamp(20px, 4vw, 36px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(20px, 4vw, 44px);
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
-  .brand::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background: var(--accent);
-    transform: rotate(45deg);
-    border-radius: 2px;
-  }
-  h1 { margin: 14px 0 6px; font-size: clamp(26px, 5vw, 34px); font-weight: 800; letter-spacing: -0.01em; }
-  header p { margin: 0; color: var(--hero-muted); }
+  .console-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .console h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.005em; }
+  .site { margin: 0; color: var(--muted); font-size: 14px; }
 
-  main.wrap { padding: 28px 16px 56px; display: grid; gap: 18px; }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--accent);
-    border-radius: 14px;
-    padding: 24px;
-    box-shadow: var(--shadow);
-  }
-  .card.plain { border-top: 1px solid var(--border); }
-  .card h2 { margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .tag {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 3px 9px;
-    border-radius: 999px;
-    background: var(--bg);
-    color: var(--muted);
-    border: 1px solid var(--border);
-  }
-  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
-  .card p { margin: 0 0 16px; color: var(--muted); }
-  .steps-preview { margin: 0 0 18px; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
-  .steps-preview li { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
-
-  .link-btn {
-    appearance: none;
-    background: none;
-    border: 0;
-    padding: 0 0 2px;
-    font: inherit;
-    font-weight: 700;
-    color: var(--text);
-    border-bottom: 2px solid var(--accent);
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .link-btn:hover { color: var(--accent-ink); }
-  .link-btn:disabled { opacity: 0.5; cursor: default; }
-  .primary {
+  .chip {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: var(--accent);
-    color: #1d1206;
-    border: 0;
-    border-radius: 10px;
-    padding: 11px 18px;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 3px 11px 3px 9px;
+    border-radius: 999px;
+    background: var(--raised);
+    color: var(--muted);
   }
-  .primary:hover { filter: brightness(1.05); }
+  .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .chip.running { background: var(--orange-soft); color: var(--orange); }
+  .chip.passed { background: var(--pass-soft); color: var(--pass); }
+  .chip.failed { background: var(--fail-soft); color: var(--fail); }
 
-  .status-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-  .status-head h2 { font-size: 18px; }
-  .spinner {
+  .clock {
+    font-family: var(--clock);
+    font-weight: 800;
+    font-size: clamp(96px, 17vw, 184px);
+    line-height: 0.86;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    margin: 22px 0 14px;
+    color: var(--text);
+    transition: color 0.3s;
+  }
+  .clock.running { color: var(--orange); }
+  .clock.failed { color: var(--fail); }
+  .caption { margin: 0; color: var(--muted); font-size: 16px; max-width: 42ch; min-height: 3.1em; }
+  .caption strong { color: var(--text); font-weight: 600; }
+
+  .progress { height: 4px; border-radius: 4px; background: var(--raised); margin: 18px 0 0; overflow: hidden; }
+  .progress span { display: block; height: 100%; width: 0; background: var(--orange); border-radius: inherit; transition: width 1s linear; }
+  .progress.passed span { background: var(--pass); }
+  .progress.failed span { background: var(--fail); }
+
+  /* Right side of the console: stages + actions */
+  .stages { list-style: none; margin: 0 0 26px; padding: 0; position: relative; }
+  .stages li { position: relative; display: grid; grid-template-columns: 22px 1fr; gap: 14px; padding-bottom: 18px; }
+  .stages li:last-child { padding-bottom: 0; }
+  .stages li::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 22px;
+    bottom: 2px;
+    width: 2px;
+    background: var(--line);
+  }
+  .stages li:last-child::after { display: none; }
+  .stages li.done::after { background: var(--pass); }
+  .dot {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    border: 2.5px solid var(--pending);
-    border-top-color: var(--accent);
-    animation: spin 0.9s linear infinite;
-    flex: none;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .badge {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
+    border: 2px solid var(--pending);
+    background: var(--panel);
     display: grid;
     place-items: center;
-    font-size: 14px;
-    font-weight: 800;
-    flex: none;
+    position: relative;
+    z-index: 1;
   }
-  .badge.pass { background: var(--pass-bg); color: var(--pass); }
-  .badge.fail { background: var(--fail-bg); color: var(--fail); }
+  .dot svg { width: 12px; height: 12px; opacity: 0; }
+  .stage-name { font-weight: 600; line-height: 22px; }
+  .stage-detail { display: block; color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.4; }
+  li.pending .stage-name { color: var(--muted); }
+  li.active .dot { border-color: var(--orange); background: var(--orange); box-shadow: 0 0 0 5px var(--orange-soft); animation: pulse 1.6s ease-in-out infinite; }
+  li.done .dot { border-color: var(--pass); background: var(--pass); }
+  li.done .dot svg.check { opacity: 1; }
+  li.failed .dot { border-color: var(--fail); background: var(--fail); }
+  li.failed .dot svg.cross { opacity: 1; }
+  li.failed .stage-name { color: var(--fail); }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 9px rgba(255, 138, 42, 0.05); } }
 
-  ol.steps { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
-  ol.steps li { display: flex; align-items: center; gap: 12px; color: var(--muted); }
-  ol.steps li::before {
-    content: "";
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--pending);
-    flex: none;
-    margin: 0 4px;
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--raised);
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
   }
-  ol.steps li.active { color: var(--text); font-weight: 600; }
-  ol.steps li.active::before { background: var(--accent); box-shadow: 0 0 0 4px rgba(242, 140, 40, 0.2); }
-  ol.steps li.done { color: var(--text); }
-  ol.steps li.done::before { background: var(--pass); }
-  ol.steps li.failed { color: var(--fail); font-weight: 600; }
-  ol.steps li.failed::before { background: var(--fail); }
-  .note { font-size: 13px; color: var(--muted); margin: 0; }
-  .actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
-  .error { color: var(--fail); font-size: 14px; margin: 12px 0 0; }
+  .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--orange); border-color: var(--orange); color: var(--on-orange); font-weight: 700; font-size: 16px; min-height: 56px; padding: 0 28px; }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn.quiet { background: none; border-color: transparent; color: var(--muted); padding: 0 10px; }
+  .btn.quiet:hover { color: var(--text); }
+  .btn:disabled { opacity: 0.6; cursor: default; filter: none; }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .message { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+  .message.error { color: var(--fail); }
 
-  .latest-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-  .pill { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
-  .pill.pass { background: var(--pass-bg); color: var(--pass); }
-  .pill.fail { background: var(--fail-bg); color: var(--fail); }
-  .pill.run { background: var(--bg); color: var(--accent-ink); border: 1px solid var(--border); }
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .stat-value { font-family: var(--clock); font-weight: 600; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat-label { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  /* Lower section */
+  .lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 16px; padding-bottom: 48px; align-items: start; }
+  .block { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  .block h2 { margin: 0 0 14px; font-size: 16px; font-weight: 700; }
+  .flow { margin: 0; padding: 0; list-style: none; counter-reset: flow; }
+  .flow li { counter-increment: flow; display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .flow li:first-child { border-top: 0; padding-top: 0; }
+  .flow li::before { content: counter(flow); font-family: var(--clock); font-weight: 800; font-size: 20px; line-height: 1.1; color: var(--orange); }
+  .flow b { display: block; font-weight: 600; }
+  .flow span { color: var(--muted); font-size: 13.5px; }
+
+  .history { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .history th { text-align: left; font-weight: 500; color: var(--muted); font-size: 13px; padding: 0 8px 10px 0; }
+  .history td { padding: 11px 8px 11px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+  .history td.num { font-variant-numeric: tabular-nums; }
+  .history a { color: var(--muted); text-decoration: none; margin-right: 12px; }
+  .history a:hover { color: var(--text); text-decoration: underline; }
+  .history .chip { font-size: 12px; padding: 1px 9px 1px 8px; }
+  .empty { color: var(--muted); margin: 0; }
+
+  footer { color: var(--muted); font-size: 13px; padding: 0 0 32px; }
+
   .hidden { display: none !important; }
-  footer { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 32px; }
-  footer a { color: inherit; }
+
+  @media (max-width: 820px) {
+    .console { grid-template-columns: 1fr; }
+    .lower { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stats .stat:last-child { grid-column: span 2; }
+    .history th:nth-child(4), .history td:nth-child(4) { display: none; }
+    .btn.primary { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    li.active .dot { animation: none; }
+    .progress span, .clock { transition: none; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <div class="brand">OrangeHRM QA</div>
-    <h1>Test Automation</h1>
-    <p>Run the end-to-end check on the OrangeHRM demo. Takes about two minutes.</p>
+<div class="shell">
+  <div class="topbar">
+    <div class="mark">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17" r="12" fill="none" stroke="#FF8A2A" stroke-width="3.5"/><path d="M16 17V10M16 17l5 3" stroke="#FF8A2A" stroke-width="3.5" stroke-linecap="round"/></svg>
+      OrangeHRM test runner
+    </div>
+    <a href="https://github.com/harshy1620/hrm-playwright-automation" target="_blank" rel="noopener">Source on GitHub</a>
   </div>
-</header>
 
-<main class="wrap">
-  <section class="card" id="start-card">
-    <h2>Employee lifecycle check <span class="tag">Demo site</span></h2>
-    <div class="mono">opensource-demo.orangehrmlive.com</div>
-    <p>Logs in, adds an employee with a profile photo, updates the job details, cross-checks the data through the API, deletes the employee and logs out. Records a video of the whole run.</p>
-    <ul class="steps-preview">
-      <li>Login</li><li>Add</li><li>Edit</li><li>API check</li><li>Delete</li><li>Logout</li>
-    </ul>
-    <button class="link-btn" id="start-btn" type="button">Start the check &rarr;</button>
-    <p class="error hidden" id="start-error"></p>
-  </section>
+  <main>
+    <section class="console" aria-labelledby="check-title">
+      <div>
+        <div class="console-head">
+          <h1 id="check-title">Employee lifecycle check</h1>
+          <span class="chip" id="chip">Ready</span>
+        </div>
+        <p class="site">On opensource-demo.orangehrmlive.com</p>
+        <div class="clock" id="clock" aria-live="off">0:00</div>
+        <p class="caption" id="caption" aria-live="polite">Loading the last run.</p>
+        <div class="progress hidden" id="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+      </div>
 
-  <section class="card hidden" id="run-card">
-    <div class="status-head">
-      <div class="spinner" id="run-icon"></div>
-      <h2 id="run-title">Starting the run&hellip;</h2>
+      <div>
+        <ol class="stages" id="stages" aria-label="Run progress">
+          <li class="pending" data-stage="queue"><span class="dot"><svg class="check" viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="#13232b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="cross" viewBox="0 0 12 12" style="position:absolute"><path d="M3 3l6 6M9 3l-6 6" stroke="#13232b" stroke-width="2" stroke-linecap="round"/></svg></span><span class="stage-name">Queued on GitHub<span class="stage-detail">Waiting for a free machine</span></span></li>
+          <li class="pending" data-stage="setup"><span class="dot"><svg class="check" viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="#13232b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="cross" viewBox="0 0 12 12" style="position:absolute"><path d="M3 3l6 6M9 3l-6 6" stroke="#13232b" stroke-width="2" stroke-linecap="round"/></svg></span><span class="stage-name">Machine set up<span class="stage-detail">Code, Node.js and packages</span></span></li>
+          <li class="pending" data-stage="browser"><span class="dot"><svg class="check" viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="#13232b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="cross" viewBox="0 0 12 12" style="position:absolute"><path d="M3 3l6 6M9 3l-6 6" stroke="#13232b" stroke-width="2" stroke-linecap="round"/></svg></span><span class="stage-name">Chrome installed<span class="stage-detail">The browser the test drives</span></span></li>
+          <li class="pending" data-stage="test"><span class="dot"><svg class="check" viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="#13232b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="cross" viewBox="0 0 12 12" style="position:absolute"><path d="M3 3l6 6M9 3l-6 6" stroke="#13232b" stroke-width="2" stroke-linecap="round"/></svg></span><span class="stage-name">Test run<span class="stage-detail">Login to logout, with video</span></span></li>
+          <li class="pending" data-stage="report"><span class="dot"><svg class="check" viewBox="0 0 12 12"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="#13232b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="cross" viewBox="0 0 12 12" style="position:absolute"><path d="M3 3l6 6M9 3l-6 6" stroke="#13232b" stroke-width="2" stroke-linecap="round"/></svg></span><span class="stage-name">Report published<span class="stage-detail">Steps, screenshots and video</span></span></li>
+        </ol>
+
+        <div class="actions" id="actions-idle">
+          <button class="btn primary" id="run-btn" type="button">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5z" fill="currentColor"/></svg>
+            Run the check
+          </button>
+          <a class="btn quiet" id="latest-report" href="https://harshy1620.github.io/hrm-playwright-automation/" target="_blank" rel="noopener">Open latest report</a>
+        </div>
+        <div class="actions hidden" id="actions-running">
+          <a class="btn" id="logs-link" href="#" target="_blank" rel="noopener">Watch live logs on GitHub</a>
+        </div>
+        <div class="actions hidden" id="actions-done">
+          <a class="btn primary" id="report-link" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4.5" width="15" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 7.8v4.4l3.8-2.2z" fill="currentColor"/></svg>
+            Open report and video
+          </a>
+          <button class="btn" id="again-btn" type="button">Run again</button>
+          <button class="btn quiet" id="copy-btn" type="button">Copy link</button>
+        </div>
+        <p class="message hidden" id="message" role="status"></p>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Recent results">
+      <div class="stat"><div class="stat-value" id="stat-pass">&ndash;</div><div class="stat-label">Passed, last 10 runs</div></div>
+      <div class="stat"><div class="stat-value" id="stat-typical">&ndash;</div><div class="stat-label">Typical run time</div></div>
+      <div class="stat"><div class="stat-value" id="stat-last">&ndash;</div><div class="stat-label">Since the last run</div></div>
+    </section>
+
+    <div class="lower">
+      <section class="block">
+        <h2>What the check does</h2>
+        <ol class="flow">
+          <li><div><b>Logs in as Admin</b><span>Confirms the dashboard opens</span></div></li>
+          <li><div><b>Adds an employee</b><span>Name, unique ID and a profile photo</span></div></li>
+          <li><div><b>Edits the job details</b><span>Job title and employment status, checked after a reload</span></div></li>
+          <li><div><b>Cross-checks through the API</b><span>OrangeHRM's own API must match the screen</span></div></li>
+          <li><div><b>Deletes the employee</b><span>Gone from both the list and the API</span></div></li>
+          <li><div><b>Logs out</b><span>The session no longer opens any page</span></div></li>
+        </ol>
+      </section>
+
+      <section class="block">
+        <h2>Recent runs</h2>
+        <table class="history" id="history-table">
+          <thead><tr><th>Result</th><th>Started</th><th>Took</th><th>How</th><th></th></tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+        <p class="empty hidden" id="history-empty">No runs yet. Start the first one above.</p>
+      </section>
     </div>
-    <ol class="steps">
-      <li id="step-queued">Run queued on GitHub</li>
-      <li id="step-test">Running the employee lifecycle test</li>
-      <li id="step-report">Report and video published</li>
-    </ol>
-    <p class="note" id="run-note">Roughly two minutes. You can leave this tab open, or come back to the report link later.</p>
-    <div class="actions hidden" id="run-actions">
-      <a class="primary" id="report-link" href="#" target="_blank" rel="noopener">Open report &amp; video &rarr;</a>
-      <a class="link-btn" id="github-link" href="#" target="_blank" rel="noopener">View run on GitHub</a>
-      <button class="link-btn" id="again-btn" type="button">Run again</button>
-    </div>
-    <p class="error hidden" id="run-error"></p>
-  </section>
+  </main>
 
-  <section class="card plain" id="latest-card">
-    <h2>Latest report</h2>
-    <p style="margin-top:6px">Open the most recent result without starting a new run.</p>
-    <div class="latest-row" id="latest-row"><span class="note">Loading&hellip;</span></div>
-    <a class="link-btn" id="latest-link" href="https://harshy1620.github.io/hrm-playwright-automation/" target="_blank" rel="noopener">View report &rarr;</a>
-  </section>
-</main>
-
-<footer>
-  Runs on GitHub Actions &middot; <a href="https://github.com/harshy1620/hrm-playwright-automation" target="_blank" rel="noopener">Source</a>
-</footer>
+  <footer>Runs on GitHub Actions. Reports are kept for the latest run; older runs keep their files on GitHub for 30 days.</footer>
+</div>
 
 <script>
-  var POLL_MS = 5000;
-  var $ = function (id) { return document.getElementById(id); };
-  var pollTimer = null;
+  var POLL_MS = 4000;
+  var DEFAULT_TYPICAL_MS = 90000;
+  var REPORT_BASE = 'https://harshy1620.github.io/hrm-playwright-automation/';
+  var BASE_TITLE = 'OrangeHRM test runner';
+  var el = function (id) { return document.getElementById(id); };
+
+  var state = { runs: [], typicalMs: DEFAULT_TYPICAL_MS, runId: null, run: null, tick: null, poll: null, notified: false };
 
   function api(path, options) {
     return fetch(path, options).then(function (res) {
-      return res.json().then(function (body) {
-        if (!res.ok || body.error) throw new Error(body.error || ('Request failed: ' + res.status));
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (!res.ok || body.error) throw new Error(body.error || ('The server answered ' + res.status + '.'));
         return body;
       });
     });
   }
 
-  function timeAgo(iso) {
+  function clockText(ms) {
+    var total = Math.max(0, Math.round(ms / 1000));
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function durationWords(ms) {
+    var total = Math.max(0, Math.round(ms / 1000));
+    var m = Math.floor(total / 60);
+    var s = total % 60;
+    if (!m) return s + ' s';
+    return m + ' min' + (s ? ' ' + s + ' s' : '');
+  }
+
+  function ago(iso) {
     var seconds = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
     if (seconds < 60) return 'just now';
     var minutes = Math.round(seconds / 60);
     if (minutes < 60) return minutes + ' min ago';
     var hours = Math.round(minutes / 60);
     if (hours < 24) return hours + ' hr ago';
-    return Math.round(hours / 24) + ' days ago';
+    var days = Math.round(hours / 24);
+    return days + (days === 1 ? ' day ago' : ' days ago');
   }
 
-  function setStep(id, state) {
-    $(id).className = state || '';
+  function shortAgo(iso) {
+    var seconds = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
+    if (seconds < 3600) return Math.max(1, Math.round(seconds / 60)) + 'm';
+    if (seconds < 86400) return Math.round(seconds / 3600) + 'h';
+    return Math.round(seconds / 86400) + 'd';
   }
+
+  function runDuration(run) {
+    if (!run.startedAt) return 0;
+    var end = run.finishedAt ? Date.parse(run.finishedAt) : Date.now();
+    return end - Date.parse(run.startedAt);
+  }
+
+  function resultOf(run) {
+    if (run.status !== 'completed') return 'running';
+    if (run.testResult) return run.testResult === 'success' ? 'passed' : 'failed';
+    if (run.conclusion === 'success') return 'passed';
+    if (run.conclusion === 'cancelled') return 'cancelled';
+    return 'failed';
+  }
+
+  var RESULT_LABEL = { running: 'Running', passed: 'Passed', failed: 'Failed', cancelled: 'Cancelled' };
+  var HOW_LABEL = { workflow_dispatch: 'From this page', push: 'Code push', pull_request: 'Pull request' };
+
+  function showMessage(text, isError) {
+    var m = el('message');
+    m.textContent = text;
+    m.className = 'message' + (isError ? ' error' : '');
+  }
+  function hideMessage() { el('message').className = 'message hidden'; }
+
+  function setActions(which) {
+    ['idle', 'running', 'done'].forEach(function (name) {
+      el('actions-' + name).classList.toggle('hidden', name !== which);
+    });
+  }
+
+  function setChip(result) {
+    var chip = el('chip');
+    chip.className = 'chip' + (result === 'ready' ? '' : ' ' + result);
+    chip.textContent = result === 'ready' ? 'Ready' : RESULT_LABEL[result];
+  }
+
+  function setStages(stages) {
+    var items = el('stages').children;
+    for (var i = 0; i < items.length; i++) {
+      var key = items[i].getAttribute('data-stage');
+      items[i].className = (stages && stages[key]) || 'pending';
+    }
+  }
+
+  function setProgress(fraction, result) {
+    var bar = el('progress');
+    bar.classList.remove('hidden');
+    bar.className = 'progress' + (result === 'passed' || result === 'failed' ? ' ' + result : '');
+    el('progress-bar').style.width = Math.round(Math.min(1, fraction) * 100) + '%';
+  }
+
+  // ---- History and stats ----
+
+  function loadHistory() {
+    return api('/api/history').then(function (data) {
+      state.runs = data.runs || [];
+      var finished = state.runs.filter(function (r) { return r.status === 'completed'; });
+      var passedDurations = finished.filter(function (r) { return r.conclusion === 'success'; })
+        .map(runDuration).sort(function (a, b) { return a - b; });
+      if (passedDurations.length) state.typicalMs = passedDurations[Math.floor(passedDurations.length / 2)];
+      renderStats(finished);
+      renderHistory();
+      if (!state.runId) {
+        var active = state.runs.find(function (r) { return r.status !== 'completed'; });
+        if (active) trackRun(active.runId, 'A run is already in progress, so this page is following it.');
+        else renderIdle();
+      }
+    }).catch(function (err) {
+      if (!state.runId) {
+        el('caption').textContent = 'Could not load recent runs.';
+        showMessage(err.message, true);
+      }
+    });
+  }
+
+  function renderStats(finished) {
+    var passed = finished.filter(function (r) { return r.conclusion === 'success'; }).length;
+    el('stat-pass').textContent = finished.length ? passed + '/' + finished.length : '–';
+    el('stat-typical').textContent = finished.length ? clockText(state.typicalMs) : '–';
+    el('stat-last').textContent = state.runs.length ? shortAgo(state.runs[0].startedAt) : '–';
+  }
+
+  function renderHistory() {
+    var body = el('history-body');
+    body.replaceChildren();
+    el('history-empty').classList.toggle('hidden', state.runs.length > 0);
+    el('history-table').classList.toggle('hidden', state.runs.length === 0);
+    var latestFinished = state.runs.find(function (r) { return r.status === 'completed'; });
+
+    state.runs.forEach(function (run) {
+      var result = resultOf(run);
+      var tr = document.createElement('tr');
+
+      var tdResult = document.createElement('td');
+      var chip = document.createElement('span');
+      chip.className = 'chip ' + result;
+      chip.textContent = RESULT_LABEL[result];
+      tdResult.appendChild(chip);
+
+      var tdWhen = document.createElement('td');
+      tdWhen.textContent = ago(run.startedAt);
+      tdWhen.title = new Date(run.startedAt).toLocaleString();
+
+      var tdTook = document.createElement('td');
+      tdTook.className = 'num';
+      tdTook.textContent = run.status === 'completed' ? clockText(runDuration(run)) : '…';
+
+      var tdHow = document.createElement('td');
+      tdHow.textContent = HOW_LABEL[run.event] || run.event;
+
+      var tdLinks = document.createElement('td');
+      if (latestFinished && run.runId === latestFinished.runId) {
+        tdLinks.appendChild(link(REPORT_BASE + '?run=' + run.runId, 'Report'));
+      }
+      tdLinks.appendChild(link(run.runUrl, 'Logs'));
+
+      tr.append(tdResult, tdWhen, tdTook, tdHow, tdLinks);
+      body.appendChild(tr);
+    });
+  }
+
+  function link(href, text) {
+    var a = document.createElement('a');
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = text;
+    return a;
+  }
+
+  // ---- Idle state ----
+
+  function renderIdle() {
+    setChip('ready');
+    setStages(null);
+    setActions('idle');
+    el('progress').classList.add('hidden');
+    var clock = el('clock');
+    clock.className = 'clock';
+    document.title = BASE_TITLE;
+    var last = state.runs.find(function (r) { return r.status === 'completed'; });
+    if (!last) {
+      clock.textContent = '0:00';
+      el('caption').textContent = 'No runs yet. Press Run the check to start the first one.';
+      return;
+    }
+    var result = resultOf(last);
+    clock.textContent = clockText(runDuration(last));
+    el('caption').innerHTML = '';
+    var strong = document.createElement('strong');
+    strong.textContent = 'Last run ' + (result === 'passed' ? 'passed' : result === 'cancelled' ? 'was cancelled' : 'failed');
+    el('caption').append(strong, ' in ' + durationWords(runDuration(last)) + ', ' + ago(last.startedAt) + '. A new run takes about ' + durationWords(state.typicalMs) + '.');
+  }
+
+  // ---- Running and finished states ----
+
+  function trackRun(runId, note) {
+    clearTimeout(state.poll);
+    clearInterval(state.tick);
+    state.runId = String(runId);
+    state.run = null;
+    state.notified = false;
+    history.replaceState(null, '', '?run=' + state.runId);
+    setChip('running');
+    setStages({ queue: 'active' });
+    setActions('running');
+    el('logs-link').href = 'https://github.com/harshy1620/hrm-playwright-automation/actions/runs/' + state.runId;
+    el('clock').className = 'clock running';
+    el('clock').textContent = '0:00';
+    el('caption').textContent = 'Starting the run.';
+    setProgress(0, 'running');
+    if (note) showMessage(note, false); else hideMessage();
+
+    state.tick = setInterval(renderClock, 1000);
+    poll();
+  }
+
+  function poll() {
+    api('/api/run/' + state.runId).then(function (run) {
+      state.run = run;
+      renderRun(run);
+      if (run.status !== 'completed') state.poll = setTimeout(poll, POLL_MS);
+    }).catch(function (err) {
+      showMessage(err.message + ' Trying again shortly.', true);
+      state.poll = setTimeout(poll, POLL_MS * 2);
+    });
+  }
+
+  function renderClock() {
+    var run = state.run;
+    if (!run || run.status === 'completed') return;
+    var elapsed = runDuration(run);
+    el('clock').textContent = clockText(elapsed);
+    setProgress(Math.min(0.96, elapsed / state.typicalMs), 'running');
+    document.title = 'Running ' + clockText(elapsed) + ' | ' + BASE_TITLE;
+  }
+
+  var STAGE_CAPTION = {
+    queue: 'Waiting for GitHub to pick up the run.',
+    setup: 'Setting up a fresh machine on GitHub.',
+    browser: 'Installing Chrome for the test.',
+    test: 'The test is logging in, adding, editing and deleting an employee.',
+    report: 'Publishing the report and video.'
+  };
 
   function renderRun(run) {
-    var testStarted = run.test.status === 'in_progress' || run.test.status === 'completed';
-    var testDone = run.test.status === 'completed';
-    var testPassed = run.test.conclusion === 'success';
-    var deploy = run.deploy;
-    var finished = run.status === 'completed';
+    setStages(run.stages);
+    el('logs-link').href = run.runUrl;
 
-    setStep('step-queued', testStarted ? 'done' : 'active');
-    setStep('step-test', !testStarted ? '' : !testDone ? 'active' : testPassed ? 'done' : 'failed');
-    if (!deploy) setStep('step-report', finished ? 'failed' : '');
-    else if (deploy.status !== 'completed') setStep('step-report', 'active');
-    else setStep('step-report', deploy.conclusion === 'success' ? 'done' : 'failed');
-
-    $('github-link').href = run.runUrl;
-
-    if (!finished) {
-      $('run-icon').className = 'spinner';
-      $('run-icon').textContent = '';
-      $('run-title').textContent = !testStarted ? 'Waiting for GitHub to start the run…'
-        : !testDone ? 'Test is running…' : 'Publishing the report…';
-      return false;
+    if (run.status !== 'completed') {
+      var activeKey = ['queue', 'setup', 'browser', 'test', 'report'].find(function (k) { return run.stages[k] === 'active'; }) || 'queue';
+      el('caption').textContent = STAGE_CAPTION[activeKey] + ' Usually about ' + durationWords(state.typicalMs) + ' in total.';
+      renderClock();
+      return;
     }
 
-    var reportReady = deploy && deploy.conclusion === 'success';
-    $('run-icon').className = 'badge ' + (testPassed ? 'pass' : 'fail');
-    $('run-icon').textContent = testPassed ? '✓' : '✕';
-    $('run-title').textContent = testPassed ? 'All checks passed' : 'The check failed';
-    $('run-note').textContent = testPassed
-      ? 'Every step passed. The report has the step timeline and the video.'
-      : 'Open the report to see which step failed, with a screenshot and the video.';
-    $('report-link').href = run.reportUrl;
-    $('report-link').classList.toggle('hidden', !reportReady);
-    $('run-actions').classList.remove('hidden');
-    loadLatest();
-    return true;
-  }
-
-  function trackRun(runId) {
-    $('start-card').classList.add('hidden');
-    $('run-card').classList.remove('hidden');
-    $('run-error').classList.add('hidden');
-    history.replaceState(null, '', '?run=' + runId);
-
-    function tick() {
-      api('/api/run/' + runId).then(function (run) {
-        if (!renderRun(run)) pollTimer = setTimeout(tick, POLL_MS);
-      }).catch(function (err) {
-        $('run-error').textContent = err.message + ' Retrying…';
-        $('run-error').classList.remove('hidden');
-        pollTimer = setTimeout(tick, POLL_MS * 2);
-      });
+    clearInterval(state.tick);
+    var result = resultOf(run);
+    var took = runDuration(run);
+    setChip(result);
+    el('clock').className = 'clock' + (result === 'failed' ? ' failed' : '');
+    el('clock').textContent = clockText(took);
+    setProgress(1, result);
+    el('caption').innerHTML = '';
+    var strong = document.createElement('strong');
+    if (result === 'passed') {
+      strong.textContent = 'Every step passed';
+      el('caption').append(strong, ' in ' + durationWords(took) + '. The report has the step timeline and the video.');
+    } else {
+      strong.textContent = 'The check failed';
+      el('caption').append(strong, ' after ' + durationWords(took) + '. The report shows the failing step with a screenshot and the video.');
     }
-    tick();
+    el('report-link').href = run.reportUrl;
+    el('report-link').classList.toggle('hidden', !run.reportReady);
+    if (!run.reportReady) showMessage('The report could not be published for this run. The logs on GitHub have the details.', true);
+    else hideMessage();
+    setActions('done');
+    document.title = (result === 'passed' ? '✅ Passed' : '❌ Failed') + ' | ' + BASE_TITLE;
+    notify(result, took);
+    loadHistory();
   }
+
+  function notify(result, took) {
+    if (state.notified || !document.hidden || !('Notification' in window) || Notification.permission !== 'granted') return;
+    state.notified = true;
+    new Notification(result === 'passed' ? 'Employee lifecycle check passed' : 'Employee lifecycle check failed', {
+      body: 'Finished in ' + durationWords(took) + '. Open the tab for the report and video.'
+    });
+  }
+
+  // ---- Actions ----
 
   function startRun() {
-    var btn = $('start-btn');
+    var btn = el('run-btn');
     btn.disabled = true;
-    btn.textContent = 'Starting…';
-    $('start-error').classList.add('hidden');
+    hideMessage();
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
     api('/api/run', { method: 'POST' }).then(function (res) {
-      trackRun(res.runId);
+      trackRun(res.runId, res.alreadyRunning ? 'A run was already in progress, so this page is following it.' : '');
     }).catch(function (err) {
-      $('start-error').textContent = err.message;
-      $('start-error').classList.remove('hidden');
+      showMessage(err.message, true);
     }).finally(function () {
       btn.disabled = false;
-      btn.innerHTML = 'Start the check &rarr;';
     });
   }
 
-  function resetToStart() {
-    clearTimeout(pollTimer);
+  function resetToIdle() {
+    clearTimeout(state.poll);
+    clearInterval(state.tick);
+    state.runId = null;
+    state.run = null;
     history.replaceState(null, '', location.pathname);
-    ['step-queued', 'step-test', 'step-report'].forEach(function (id) { setStep(id, ''); });
-    $('run-actions').classList.add('hidden');
-    $('run-title').textContent = 'Starting the run…';
-    $('run-icon').className = 'spinner';
-    $('run-icon').textContent = '';
-    $('run-note').textContent = 'Roughly two minutes. You can leave this tab open, or come back to the report link later.';
-    $('run-card').classList.add('hidden');
-    $('start-card').classList.remove('hidden');
+    hideMessage();
+    renderIdle();
   }
 
-  function loadLatest() {
-    api('/api/latest').then(function (run) {
-      var row = $('latest-row');
-      if (run.none) { row.innerHTML = '<span class="note">No runs yet.</span>'; return; }
-      var pill = document.createElement('span');
-      if (run.status !== 'completed') { pill.className = 'pill run'; pill.textContent = 'Running'; }
-      else if (run.test.conclusion === 'success') { pill.className = 'pill pass'; pill.textContent = 'Passed'; }
-      else { pill.className = 'pill fail'; pill.textContent = 'Failed'; }
-      var info = document.createElement('span');
-      info.className = 'note';
-      var source = run.event === 'workflow_dispatch' ? 'started manually' : run.event === 'push' ? 'after a code push' : run.event;
-      info.textContent = timeAgo(run.startedAt || run.updatedAt) + ' · ' + source;
-      row.replaceChildren(pill, info);
-      $('latest-link').href = run.reportUrl;
-    }).catch(function () {
-      $('latest-row').innerHTML = '<span class="note">Could not load the latest run.</span>';
+  function copyLink() {
+    var btn = el('copy-btn');
+    navigator.clipboard.writeText(location.href).then(function () {
+      btn.textContent = 'Link copied';
+      setTimeout(function () { btn.textContent = 'Copy link'; }, 2000);
     });
   }
 
-  $('start-btn').addEventListener('click', startRun);
-  $('again-btn').addEventListener('click', resetToStart);
+  el('run-btn').addEventListener('click', startRun);
+  el('again-btn').addEventListener('click', resetToIdle);
+  el('copy-btn').addEventListener('click', copyLink);
 
   var runFromUrl = new URLSearchParams(location.search).get('run');
   if (runFromUrl && /^\d+$/.test(runFromUrl)) trackRun(runFromUrl);
-  loadLatest();
+  loadHistory();
+  setInterval(function () { if (!state.runId || (state.run && state.run.status === 'completed')) loadHistory(); }, 60000);
 </script>
 </body>
 </html>

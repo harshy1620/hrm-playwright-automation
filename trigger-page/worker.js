@@ -7,6 +7,14 @@ const REPO = 'hrm-playwright-automation';
 const WORKFLOW = 'playwright.yml';
 const REPORT_URL = 'https://harshy1620.github.io/hrm-playwright-automation/';
 
+// Workflow step names (from playwright.yml) grouped into the stages shown on the page
+const STAGES = [
+  { key: 'setup', steps: ['Set up job', 'Checkout repository', 'Setup Node.js', 'Install dependencies'] },
+  { key: 'browser', steps: ['Install Playwright Browsers'] },
+  { key: 'test', steps: ['Run Playwright tests'] },
+  { key: 'report', steps: ['Upload HTML Report', 'Upload Test Videos & Traces', 'Prepare report for GitHub Pages'] },
+];
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -17,8 +25,8 @@ export default {
       if (request.method === 'POST' && url.pathname === '/api/run') {
         return json(await startRun(env));
       }
-      if (request.method === 'GET' && url.pathname === '/api/latest') {
-        return json(await latestRun(env));
+      if (request.method === 'GET' && url.pathname === '/api/history') {
+        return json({ runs: (await recentRuns(env)).map(summarizeRun) });
       }
       const match = url.pathname.match(/^\/api\/run\/(\d+)$/);
       if (request.method === 'GET' && match) {
@@ -63,6 +71,18 @@ async function recentRuns(env, extraQuery = '') {
   return data.workflow_runs;
 }
 
+function summarizeRun(run) {
+  return {
+    runId: run.id,
+    status: run.status,
+    conclusion: run.conclusion,
+    event: run.event,
+    startedAt: run.run_started_at || run.created_at,
+    finishedAt: run.status === 'completed' ? run.updated_at : null,
+    runUrl: run.html_url,
+  };
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function startRun(env) {
@@ -84,7 +104,15 @@ async function startRun(env) {
       .find((r) => Date.parse(r.created_at) >= requestedAt);
     if (run) return { runId: run.id };
   }
-  throw new Error('The run was requested but has not appeared on GitHub yet. Check the latest report in a minute.');
+  throw new Error('The run was requested but has not appeared on GitHub yet. Check the history in a minute.');
+}
+
+function stageState(steps) {
+  if (!steps.length) return 'pending';
+  if (steps.some((s) => s.conclusion === 'failure')) return 'failed';
+  if (steps.every((s) => s.status === 'completed')) return 'done';
+  if (steps.some((s) => s.status !== 'queued')) return 'active';
+  return 'pending';
 }
 
 async function runStatus(env, runId) {
@@ -94,22 +122,25 @@ async function runStatus(env, runId) {
   ]);
   const test = jobs.find((job) => job.name === 'test');
   const deploy = jobs.find((job) => job.name === 'deploy-report');
+  const steps = test?.steps ?? [];
+  const finished = run.status === 'completed';
 
+  const stages = { queue: !test || test.status === 'queued' ? (finished ? 'failed' : 'active') : 'done' };
+  for (const stage of STAGES) {
+    const matched = steps.filter((s) => stage.steps.includes(s.name));
+    if (stage.key === 'report') {
+      // The deploy job only exists once the test job has finished
+      matched.push(deploy ?? { status: finished ? 'completed' : 'queued', conclusion: finished ? 'failure' : null });
+    }
+    stages[stage.key] = stageState(matched);
+  }
+
+  const testStep = steps.find((s) => s.name === 'Run Playwright tests');
   return {
-    runId: run.id,
-    status: run.status,
-    conclusion: run.conclusion,
-    event: run.event,
-    startedAt: run.run_started_at,
-    updatedAt: run.updated_at,
-    runUrl: run.html_url,
+    ...summarizeRun(run),
+    stages,
+    testResult: testStep?.conclusion ?? null,
+    reportReady: deploy?.conclusion === 'success',
     reportUrl: `${REPORT_URL}?run=${run.id}`,
-    test: { status: test?.status ?? 'queued', conclusion: test?.conclusion ?? null },
-    deploy: deploy ? { status: deploy.status, conclusion: deploy.conclusion } : null,
   };
-}
-
-async function latestRun(env) {
-  const [latest] = await recentRuns(env);
-  return latest ? runStatus(env, latest.id) : { none: true };
 }
